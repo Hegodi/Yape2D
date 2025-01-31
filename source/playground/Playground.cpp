@@ -10,10 +10,69 @@ Playground::Playground()
 bool Playground::OnUserCreate()
 {
 	mOffset = { ScreenWidth() * 0.5f, ScreenHeight() * 0.5f };
-	mPlotEnergy.SetSize(300, 150);
-	//InitTest();
-	InitSpringPendulum();
-	//InitSpringDoublePendulum();
+
+
+	int buttonX = 5;
+	int buttonY = 5;
+	const int buttonWidth = 100;
+	const int buttonHeight = 30;
+
+	mButtonPlayPause = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Run", [this]() 
+	{
+		if (mIsSimulationRunning)
+		{
+			mButtonPlayPause->SetText("Run");
+			StopSimulation();
+		}
+		else
+		{
+			mButtonPlayPause->SetText("Stop");
+			StartSimulation();
+		}
+	});
+	mButtons.push_back(mButtonPlayPause);
+
+
+	buttonY = 100;
+	{
+		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Mass Point", [this]() { SwitchEditMode(EditMode::AddMass);});
+		mButtons.push_back(btn);
+		mButtonsEdit.push_back(btn);
+	}
+	{
+		buttonY += 35;
+		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Spring", [this]() { SwitchEditMode(EditMode::AddSpring);});
+		mButtons.push_back(btn);
+		mButtonsEdit.push_back(btn);
+	}
+	{
+		buttonY += 35;
+		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Rod", [this]() { SwitchEditMode(EditMode::AddTwoPointsElement);});
+		mButtons.push_back(btn);
+		mButtonsEdit.push_back(btn);
+	}
+
+	buttonX = ScreenWidth() - 105;
+	buttonY = 5;
+	{
+		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Clear All", [this]() {ResetSetup(); });
+		mButtons.push_back(btn);
+		mButtonsEdit.push_back(btn);
+	}
+	{
+		buttonY += 35;
+		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Double Pend", [this]() {InitDoublePendulum(); });
+		mButtons.push_back(btn);
+		mButtonsEdit.push_back(btn);
+	}
+	{
+		buttonY += 35;
+		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Springs", [this]() {InitSpringTests(); });
+		mButtons.push_back(btn);
+		mButtonsEdit.push_back(btn);
+	}
+
+	ResetSetup();
 	return true;
 }
 
@@ -21,34 +80,30 @@ bool Playground::OnUserUpdate(float fElapsedTime)
 {
 	Clear(olc::BLACK);
 
-	for (auto& btn : mButtons)
-	{
-		btn.Update(this);
-	}
-
 	DrawElements();
 
-	if (mShowPlotEnergy)
+	for (auto& btn : mButtons)
 	{
-		mPlotEnergy.Draw(this, ScreenWidth() - 310, ScreenHeight() - 160);
+		if (btn->Update(this))
+		{
+			return true;
+		}
 	}
 
-	if (GetKey(olc::P).bPressed) mShowPlotEnergy != mShowPlotEnergy;
 
 	if (mIsSimulationRunning)
 	{
-		DrawString(10, ScreenHeight() - 10 , "Pulse SPACE to stop the simulation and enter edit mode", olc::WHITE);
 		UpdateSimulation(fElapsedTime);
 	}
 	else
 	{
-		DrawString(10, ScreenHeight() - 10 , "Pulse SPACE to run the simulation", olc::WHITE);
 		UpdateEditMode();
 	}
 
+
 	std::string info;
 	info = "Mass Points " + std::to_string(mMassPoints.size()) + "\n";
-	info += "Springs: " + std::to_string(mSprings.size()) + "\n";
+	info += "Two Points Elements: " + std::to_string(mTwoPointsElements.size()) + "\n";
 
 	DrawString(10, ScreenHeight() - 50 , info, olc::WHITE);
 
@@ -73,7 +128,7 @@ void Playground::DrawElements()
 	{
 		ele->Draw(this);
 	}
-	for (auto const& spr : mSprings)
+	for (auto const& spr : mTwoPointsElements)
 	{
 		spr->Draw(this);
 	}
@@ -87,18 +142,7 @@ void Playground::SwitchEditMode(EditMode mode)
 	}
 
 	mEditMode = mode;
-
 	mElementSelected = nullptr;
-	switch (mEditMode)
-	{
-	case Playground::EditMode::AddMass:
-		break;
-	case Playground::EditMode::AddSpring:
-		break;
-	default:
-		break;
-	}
-
 }
 
 void Playground::UpdateEditMode()
@@ -114,11 +158,15 @@ void Playground::UpdateEditMode()
 	{
 	case Playground::EditMode::AddMass:
 		txt += "Add Mass Point";
-		UpdateAddMass();
+		UpdateAddPoint();
 		break;
 	case Playground::EditMode::AddSpring:
-		UpdateAddSpring();
 		txt += "Add Spring";
+		UpdateAddTwoPoints();
+		break;
+	case Playground::EditMode::AddTwoPointsElement:
+		txt += "Add TwoPointsElement";
+		UpdateAddTwoPoints();
 		break;
 	default:
 		break;
@@ -136,11 +184,6 @@ void Playground::UpdateEditMode()
 void Playground::UpdateSimulation(float dt)
 {
 	mPhysicsEngine.Update(dt);
-	double energy = mPhysicsEngine.CalculateEnergy();
-	char energy_txt[64];
-	sprintf(energy_txt, "Energy: %13.6e (%.1f)", energy, mPhysicsEngine.GetTime());
-	DrawString(olc::vi2d(ScreenWidth() - 260, 10), energy_txt);
-	mPlotEnergy.AddValue(energy);
 
 	for (auto& mp : mMassPoints)
 	{
@@ -149,7 +192,7 @@ void Playground::UpdateSimulation(float dt)
 	}
 }
 
-void Playground::UpdateAddMass()
+void Playground::UpdateAddPoint()
 {
 	if (GetMouse(0).bPressed)
 	{
@@ -162,25 +205,26 @@ void Playground::UpdateAddMass()
 		auto mp = FindMassPoint(GetMousePos());
 		if (mp != nullptr)
 		{
-			std::erase_if(mSprings, [mp](std::shared_ptr<Spring> spring) { return spring->GetMassPointEnd() == mp || spring->GetMassPointStart() == mp; });
-		}
+			std::erase_if(mTwoPointsElements, [mp](std::shared_ptr<TwoPointsElement> tpe) { return tpe->GetMassPointEnd() == mp || tpe->GetMassPointStart() == mp; });
+			mIsSimulationDirty = true;
 
-		for (auto it = mMassPoints.begin(); it != mMassPoints.end(); it++)
-		{
-			if (*it == mp)
+			for (auto it = mMassPoints.begin(); it != mMassPoints.end(); it++)
 			{
-				mMassPoints.erase(it);
-				break;
+				if (*it == mp)
+				{
+					mMassPoints.erase(it);
+					break;
+				}
 			}
 		}
 	}
 }
 
-void Playground::UpdateAddSpring()
+void Playground::UpdateAddTwoPoints()
 {
 	if (mElementSelected != nullptr)
 	{
-		auto spring = std::dynamic_pointer_cast<Spring>(mElementSelected);
+		auto spring = std::dynamic_pointer_cast<TwoPointsElement>(mElementSelected);
 		spring->SetTemporaryEndPoint(FromScreenToWorld(GetMousePos()));
 
 	}
@@ -192,25 +236,26 @@ void Playground::UpdateAddSpring()
 			
 			if (mElementSelected == nullptr)
 			{
-				auto spring = std::make_shared<Spring>();
-				spring->SetPointStart(mp);
-				spring->SetTemporaryEndPoint(FromScreenToWorld(GetMousePos()));
-				mElementSelected = spring;
+				std::shared_ptr<TwoPointsElement> tpe = mEditMode == EditMode::AddSpring ? std::make_shared<Spring>() : std::make_shared<TwoPointsElement>();
+				tpe->SetPointStart(mp);
+				tpe->SetTemporaryEndPoint(FromScreenToWorld(GetMousePos()));
+				mElementSelected = tpe;
 			}
 			else
 			{
-				auto spring = std::dynamic_pointer_cast<Spring>(mElementSelected);
-				spring->SetPointEnd(mp);
+				auto tpe = std::dynamic_pointer_cast<TwoPointsElement>(mElementSelected);
+				tpe->SetPointEnd(mp);
 
-				auto it = std::find_if(mSprings.begin(), mSprings.end(), [spring](std::shared_ptr<Spring> const& spr) {return spr->HasTheSameConnections(spring); });
-				if (it == mSprings.end())
+				auto it = std::find_if(mTwoPointsElements.begin(), mTwoPointsElements.end(), [tpe](std::shared_ptr<TwoPointsElement> const& e) {return e->HasTheSameConnections(tpe); });
+				if (it == mTwoPointsElements.end())
 				{
-					mSprings.push_back(spring);
+					mTwoPointsElements.push_back(tpe);
+					mIsSimulationDirty = true;
 					mElementSelected = nullptr;
 				}
 				else
 				{
-					spring->SetPointEnd(nullptr);
+					tpe->SetPointEnd(nullptr);
 				}
 			}
 		}
@@ -223,21 +268,48 @@ void Playground::UpdateAddSpring()
 
 void Playground::StartSimulation()
 {
-	mPhysicsEngine.Reset();
-
-	for (auto const& mp : mMassPoints)
+	if (mIsSimulationDirty)
 	{
-		auto pos = mp->GetPosition();
-		mPhysicsEngine.AddPointMass(mp->GetId(), mp->GetMass(), pos.x, pos.y, mp->IsFixed());
-	}
+		mPhysicsEngine.Reset();
 
-	for (auto const& sp : mSprings)
-	{
-		mPhysicsEngine.AddSpring(sp->GetMassPointStart()->GetId(), sp->GetMassPointEnd()->GetId(), sp->GetLength(), sp->GetElasticConstant());
-	}
+		for (auto const& mp : mMassPoints)
+		{
+			auto pos = mp->GetPosition();
+			mPhysicsEngine.AddPointMass(mp->GetId(), mp->GetMass(), pos.x, pos.y);
+			if (mp->IsFixed())
+			{
+				mPhysicsEngine.AddFixedPositionConstrain(mp->GetId(), yape2d::vec2f(pos.x, pos.y));
+			}
+		}
 
+		for (auto const& tpe : mTwoPointsElements)
+		{
+			if (auto sp = std::dynamic_pointer_cast<Spring>(tpe))
+			{
+				mPhysicsEngine.AddSpring(sp->GetMassPointStart()->GetId(), sp->GetMassPointEnd()->GetId(), sp->GetLength(), sp->GetElasticConstant());
+			}
+			else
+			{
+				mPhysicsEngine.AddDistanceConstrain(tpe->GetMassPointStart()->GetId(), tpe->GetMassPointEnd()->GetId(), tpe->GetLength());
+			}
+		}
+	}
 
 	mIsSimulationRunning = true;
+
+	for (auto btn : mButtonsEdit)
+	{
+		btn->Hide();
+	}
+}
+
+void Playground::StopSimulation()
+{
+	mIsSimulationRunning = false;
+	for (auto btn : mButtonsEdit)
+	{
+		btn->Show();
+	}
 }
 
 std::shared_ptr<MassPoint> Playground::FindMassPoint(olc::vf2d pos)
@@ -252,93 +324,79 @@ std::shared_ptr<MassPoint> Playground::FindMassPoint(olc::vf2d pos)
 	return nullptr;
 }
 
-void Playground::InitTest()
+void Playground::ResetSetup()
 {
+	StopSimulation();
+	mMassPoints.clear();
+	mTwoPointsElements.clear();
+	mPhysicsEngine.Reset();
+	mIsSimulationDirty = true;
+}
+
+void Playground::InitSpringTests()
+{
+	StopSimulation();
 	auto mp1 = std::make_shared<MassPoint>();
-	mp1->SetPosition(olc::vf2d(-1.5f, 0.0f));
+	mp1->SetPosition(olc::vf2d(0.0f, 3.0f));
 	mp1->SetFixed();
 	mMassPoints.push_back(mp1);
 
 	auto mp2 = std::make_shared<MassPoint>();
-	mp2->SetPosition(olc::vf2d(0.3f, 0.0f));
+	mp2->SetPosition(olc::vf2d(1.4f, 1.5f));
 	mMassPoints.push_back(mp2);
 
 	auto mp3 = std::make_shared<MassPoint>();
-	mp3->SetPosition(olc::vf2d(1.5f, 0.0f));
+	mp3->SetPosition(olc::vf2d(-1.2f, 0.0f));
 	mMassPoints.push_back(mp3);
 
 	{
-		auto spring = std::make_shared<Spring>();
-		spring->SetPointStart(mp1);
-		spring->SetPointEnd(mp2);
-		spring->SetLength(1.0f);
-		mSprings.push_back(spring);
+		auto rod = std::make_shared<Spring>();
+		rod->SetPointStart(mp1);
+		rod->SetPointEnd(mp2);
+		mTwoPointsElements.push_back(rod);
 	}
 
 	{
-		auto spring = std::make_shared<Spring>();
-		spring->SetPointStart(mp3);
-		spring->SetPointEnd(mp2);
-		spring->SetLength(1.0f);
-		mSprings.push_back(spring);
+		auto rod = std::make_shared<Spring>();
+		rod->SetPointStart(mp2);
+		rod->SetPointEnd(mp3);
+		mTwoPointsElements.push_back(rod);
 	}
+	mIsSimulationDirty = true;
 }
 
-void Playground::InitSpringPendulum()
+void Playground::InitDoublePendulum()
 {
+	StopSimulation();
 	auto mp1 = std::make_shared<MassPoint>();
-	mp1->SetPosition(olc::vf2d(0.0f, 2.0f));
+	mp1->SetPosition(olc::vf2d(0.0f, 3.0f));
 	mp1->SetFixed();
 	mMassPoints.push_back(mp1);
 
 	auto mp2 = std::make_shared<MassPoint>();
-	mp2->SetPosition(olc::vf2d(0.3f, 1.0f));
-	mMassPoints.push_back(mp2);
-
-	auto spring = std::make_shared<Spring>();
-	spring->SetPointStart(mp1);
-	spring->SetPointEnd(mp2);
-	spring->SetLength(1.0f);
-	spring->SetElasticConstant(10.0);
-	mSprings.push_back(spring);
-
-	mPhysicsEngine.SetGravity(9.8);
-}
-
-void Playground::InitSpringDoublePendulum()
-{
-	auto mp1 = std::make_shared<MassPoint>();
-	mp1->SetPosition(olc::vf2d(0.0f, 2.0f));
-	mp1->SetFixed();
-	mMassPoints.push_back(mp1);
-
-	auto mp2 = std::make_shared<MassPoint>();
-	mp2->SetPosition(olc::vf2d(0.4f, 1.0f));
+	mp2->SetPosition(olc::vf2d(1.4f, 1.5f));
 	mMassPoints.push_back(mp2);
 
 	auto mp3 = std::make_shared<MassPoint>();
-	mp3->SetPosition(olc::vf2d(-0.2f, 0.0f));
+	mp3->SetPosition(olc::vf2d(-1.2f, 0.0f));
 	mMassPoints.push_back(mp3);
 
 	{
-		auto spring = std::make_shared<Spring>();
-		spring->SetPointStart(mp1);
-		spring->SetPointEnd(mp2);
-		spring->SetLength(1.0f);
-		spring->SetElasticConstant(10.0);
-		mSprings.push_back(spring);
+		auto rod = std::make_shared<TwoPointsElement>();
+		rod->SetPointStart(mp1);
+		rod->SetPointEnd(mp2);
+		mTwoPointsElements.push_back(rod);
 	}
 
 	{
-		auto spring = std::make_shared<Spring>();
-		spring->SetPointStart(mp2);
-		spring->SetPointEnd(mp3);
-		spring->SetLength(1.0f);
-		spring->SetElasticConstant(10.0);
-		mSprings.push_back(spring);
+		auto rod = std::make_shared<TwoPointsElement>();
+		rod->SetPointStart(mp2);
+		rod->SetPointEnd(mp3);
+		mTwoPointsElements.push_back(rod);
 	}
 
 	mPhysicsEngine.SetGravity(9.8);
+	mIsSimulationDirty = true;
 }
 
 olc::vf2d Playground::FromScreenToWorld(olc::vf2d const& pos) const

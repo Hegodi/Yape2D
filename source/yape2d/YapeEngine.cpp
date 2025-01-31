@@ -2,8 +2,9 @@
 
 #include <assert.h>
 
-#include <yape2d/SpringForce.h>
+#include <yape2d/ForceSpring.h>
 #include <yape2d/ConstrainDistance.h>
+#include <yape2d/ConstrainFixedPosition.h>
 
 namespace yape2d
 {
@@ -18,28 +19,30 @@ namespace yape2d
 		mHasGravity = abs(mGravity) > FLT_EPSILON;
 	}
 
-	void YapeEngine::AddPointMass(unsigned int id, float mass, float x, float y, bool fixedPosition)
+	void YapeEngine::AddPointMass(unsigned int id, float mass, float x, float y)
 	{
-		mData.AddMassPoint(id, x, y, mass, fixedPosition);
+		mData.AddMassPoint(id, x, y, mass);
 	}
 
 	void YapeEngine::AddSpring(unsigned int id1, unsigned int id2, float length, float stiffness)
 	{
-		mForces.push_back(std::make_unique<SpringForce>(id1, id2, length, stiffness));
+		mForces.push_back(std::make_unique<ForceSpring>(id1, id2, length, stiffness));
 	}
 
 	void YapeEngine::AddDistanceConstrain(unsigned int id1, unsigned int id2, float distance)
 	{
 		mConstrains.push_back(std::make_unique<ConstrainDistance>(id1, id2, distance));
 	}
+	void YapeEngine::AddFixedPositionConstrain(unsigned int id1, vec2f position)
+	{
+		mConstrains.push_back(std::make_unique<ConstrainFixedPosition>(id1, position));
+	}
 
 	void YapeEngine::Update(float dt)
 	{
 
-		//ApplyConstrains();
-
 		SemiImplicitEulerSolver(dt);
-		//RungeKutta4(dt);
+		ApplyConstrains();
 
 		mTime += dt;
 
@@ -96,12 +99,6 @@ namespace yape2d
 	{
 		for (int i = 0; i < mData.mM.size(); i++)
 		{
-			if (mData.mFixed[i])
-			{
-				mData.mV[i] = { 0.0f, 0.0f };
-				continue;
-			}
-
 			mData.mP[i] += mData.mV[i] * dt;
 		}
 	}
@@ -110,11 +107,6 @@ namespace yape2d
 	{
 		for (int i = 0; i < mData.mM.size(); i++)
 		{
-			if (mData.mFixed[i])
-			{
-				continue;
-			}
-
 			auto a = mData.mF[i] / mData.mM[i];
 			a.y -= mGravity;
 			mData.mV[i] += a * dt;
@@ -136,6 +128,13 @@ namespace yape2d
 
 	void YapeEngine::ApplyConstrains()
 	{
+		for (int i = 0; i < 1; i++)
+		{
+			for (auto const& constrain : mConstrains)
+			{
+				constrain->Apply(mData, 5.0f);
+			}
+		}
 	}
 
 }

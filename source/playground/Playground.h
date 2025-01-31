@@ -2,12 +2,11 @@
 #include <olcPixelGameEngine.h>
 #include <Button.h>
 #include <yape2d/YapeEngine.h>
-#include <PlotCanvas.h>
 
 
 class Element;
 class MassPoint;
-class Spring;
+class TwoPointsElement;
 
 class Playground : public olc::PixelGameEngine
 {
@@ -26,6 +25,7 @@ private:
 	{
 		AddMass,
 		AddSpring,
+		AddTwoPointsElement,
 		COUNT
 	};
 
@@ -36,19 +36,21 @@ private:
 	void UpdateEditMode();
 	void UpdateSimulation(float dt);
 
-	void UpdateAddMass();
-	void UpdateAddSpring();
+	void UpdateAddPoint();
+	void UpdateAddTwoPoints();
 
 	void StartSimulation();
+	void StopSimulation();
 
 	std::shared_ptr<MassPoint> FindMassPoint(olc::vf2d pos);
 
-	void InitTest();
-	void InitSpringPendulum();
-	void InitSpringDoublePendulum();
-
+	void ResetSetup();
+	void InitSpringTests();
+	void InitDoublePendulum();
 
 private:
+
+	bool mIsSimulationDirty = false;
 
 	bool mWithGravity = false;
 	bool mIsSimulationRunning = false;
@@ -57,16 +59,16 @@ private:
 	std::shared_ptr<Element> mElementSelected = nullptr;
 
 	std::vector<std::shared_ptr<MassPoint>> mMassPoints;
-	std::vector<std::shared_ptr<Spring>> mSprings;
+	std::vector<std::shared_ptr<TwoPointsElement>> mTwoPointsElements;
 
-	std::vector<Button> mButtons;
+	std::vector<std::shared_ptr<Button>> mButtons;
+
+	std::vector<std::shared_ptr<Button>> mButtonsEdit;
+
+	std::shared_ptr<Button> mButtonPlayPause;
 
 	yape2d::YapeEngine mPhysicsEngine;
 
 	float mScale = 100.0;
 	olc::vf2d mOffset = { 0.0f, 0.0f };
-
-	PlotCanvas mPlotEnergy;
-	bool mShowPlotEnergy = true;
-
 }; 

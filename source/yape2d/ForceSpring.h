@@ -4,10 +4,10 @@
 namespace yape2d
 {
 
-	class SpringForce : public Force
+	class ForceSpring : public Force
 	{
 	public:
-		SpringForce(unsigned int id1, unsigned int id2, float length, float stiffness)
+		ForceSpring(unsigned int id1, unsigned int id2, float length, float stiffness)
 			: mId1(id1)
 			, mId2(id2)
 			, mLength(length)

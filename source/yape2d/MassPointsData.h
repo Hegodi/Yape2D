@@ -13,7 +13,6 @@ namespace yape2d
 		std::vector<vec2f> mP;
 		std::vector<vec2f> mV;
 		std::vector<vec2f> mF;
-		std::vector<bool> mFixed;
 
 		void Clear()
 		{
@@ -23,10 +22,9 @@ namespace yape2d
 			mP.clear();
 			mV.clear();
 			mF.clear();
-			mFixed.clear();
 		}
 
-		void AddMassPoint(unsigned int id, float x, float y, float mass, bool isFixed)
+		void AddMassPoint(unsigned int id, float x, float y, float mass)
 		{
 
 			mIdMap.emplace(id, mM.size());
@@ -35,7 +33,6 @@ namespace yape2d
 			mP.push_back(vec2f(x, y));
 			mV.push_back(vec2f(0.0f,0.0f));
 			mF.push_back(vec2f(0.0f,0.0f));
-			mFixed.push_back(isFixed);
 		}
 	};
 }

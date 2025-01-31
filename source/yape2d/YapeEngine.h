@@ -17,9 +17,10 @@ namespace yape2d
 		void Reset();
 		void SetGravity(float gravity);
 
-		void AddPointMass(unsigned int id, float mass, float x, float y, bool fixedPosition = false);
+		void AddPointMass(unsigned int id, float mass, float x, float y);
 		void AddSpring(unsigned int id1, unsigned int id2, float length, float stiffness);
 		void AddDistanceConstrain(unsigned int id1, unsigned int id2, float distance);
+		void AddFixedPositionConstrain(unsigned int id1, vec2f position);
 
 		void Update(float dt);
 

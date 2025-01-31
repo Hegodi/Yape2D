@@ -6,7 +6,6 @@ namespace yape2d
 	class Constrain
 	{
 	public:
-		virtual float Residual(MassPointsData& data) = 0;
-		virtual float Jacobian(MassPointsData& data, unsigned int id) = 0;
+		virtual void Apply(MassPointsData& data, float correctionWeight = 0.0f) = 0;
 	};
 }

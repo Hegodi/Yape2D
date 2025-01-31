@@ -4,39 +4,18 @@
 
 #include <Element.h>
 #include <MassPoint.h>
+#include <TwoPointsElement.h>
 
-class Spring : public Element
+class Spring : public TwoPointsElement
 {
 public:
-	Spring() : Element(0) 
+	Spring() 
 	{
-	}
-
-	void SetPointStart(std::shared_ptr<MassPoint> point)
-	{
-		mP1 = point;
-	}
-	void SetPointEnd(std::shared_ptr<MassPoint> point)
-	{
-		mP2 = point;
-		if (mP2 != nullptr)
-		{
-			mLength = (mP2->GetPosition() - mP1->GetPosition()).mag() * 0.8;
-		}
 	}
 
 	float GetElasticConstant() const { return mElasticConstant; }
 	void SetElasticConstant(double value) { mElasticConstant = value; }
-	float GetLength() const { return mLength; }
 	void SetLength(float length) { mLength = length; }
-
-	bool HasStartPoint() const { return mP1 != nullptr; }
-	bool HasEndPoint() const { return mP2 != nullptr; }
-
-	std::shared_ptr<MassPoint> GetMassPointStart() const { return mP1; }
-	std::shared_ptr<MassPoint> GetMassPointEnd() const { return mP2; }
-
-	void SetTemporaryEndPoint(olc::vf2d pos) { mTemporaryEndPoint = pos; }
 
 	void Draw(Playground* wb) override
 	{
@@ -66,15 +45,7 @@ public:
 		}
 	}
 
-	bool HasTheSameConnections(std::shared_ptr<Spring> other)
-	{
-		return ((other->mP1 == mP1 && other->mP2 == mP2) || (other->mP2 == mP1 && other->mP1 == mP2));
-	}
 
 private:
-	std::shared_ptr<MassPoint> mP1 = nullptr; 
-	std::shared_ptr<MassPoint> mP2 = nullptr; 
-	olc::vf2d mTemporaryEndPoint = { 0.0f, 0.0f };
 	float mElasticConstant = 5.0f;
-	float mLength = 0.0f;
 };

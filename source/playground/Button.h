@@ -10,13 +10,20 @@ public:
 	Button(int x, int y, int width, int height, const char* text, OnClickCallback onClick)
 		: mPos(x, y)
 		, mSize(width, height)
+		, mText(text)
+		, mCallback(onClick)
 	{
-		mBBmin = mPos - mSize / 2;
-		mBBmax = mPos + mSize / 2;
+		mBBmin = mPos;
+		mBBmax = mPos + mSize;
+
+		mPosText = olc::vi2d(mPos.x + mSize.x / 2 - 8 * mText.length() / 2, mPos.y + mSize.y / 2 - 4);
 	}
 
-	void Update(olc::PixelGameEngine* pge)
+	bool Update(olc::PixelGameEngine* pge)
 	{
+		if (mHidden)
+			return false;
+
 		auto pos = pge->GetMousePos();
 
 		olc::Pixel color = olc::GREY;
@@ -26,16 +33,27 @@ public:
 			if (pge->GetMouse(0).bPressed && mCallback != nullptr)
 			{
 				mCallback();
+				return true;
 			}
 		}
 
 		pge->FillRect(mPos, mSize, color);
+		pge->DrawString(mPosText, mText, olc::BLACK);
+		return false;
 	}
 
+	void SetText(const char* text) { mText = text; }
+
+	void Hide() { mHidden = true; }
+	void Show() { mHidden = false;}
+
 private:
+	bool mHidden = false;
+	std::string mText;
 	olc::vi2d mBBmin;
 	olc::vi2d mBBmax;
 	olc::vi2d mPos;
+	olc::vi2d mPosText;
 	olc::vi2d mSize;
 	OnClickCallback mCallback = nullptr;
 };
