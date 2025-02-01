@@ -4,6 +4,7 @@
 #include <UI/UIBase.h>
 #include <assert.h>
 
+using OnChangeCallback = std::function<void(float value)>;
 class UISlider : public UIBase
 {
 public:
@@ -21,6 +22,11 @@ public:
 
 
 		SetValue(mValue);
+	}
+
+	void SetCallback(OnChangeCallback callback)
+	{
+		mChangeCallback = callback;
 	}
 
 	bool UpdateInternal(olc::PixelGameEngine* pge) override
@@ -78,7 +84,14 @@ public:
 			xPos = mRailPos.x + mRailSize.x;
 
 		float weight = (xPos - mRailPos.x) / (mRailSize.x);
-		mValue = mMinValue + weight * (mMaxValue - mMinValue);
+		float valueNew = mMinValue + weight * (mMaxValue - mMinValue);
+
+		if (mValue != valueNew)
+		{
+			mValue = valueNew;
+			if (mChangeCallback != nullptr)
+				mChangeCallback(valueNew);
+		}
 		mCursorPos.x = xPos;
 		mCursorBBmin = mCursorPos;
 		mCursorBBmax = mCursorBBmin + mCursorSize;
@@ -107,6 +120,8 @@ public:
 	float GetValue() const { return mValue; }
 
 private:
+
+	OnChangeCallback mChangeCallback = nullptr;
 	bool mIsDragging = false;
 
 	olc::Pixel mColor = olc::GREY;

@@ -39,11 +39,12 @@ private:
 
 	void SwitchEditMode(EditMode mode);
 
-	void UpdateEditMode();
+	void UpdateEditor();
 	void UpdateSimulation(float dt);
 
 	void UpdateAddPoint();
 	void UpdateAddTwoPoints();
+	void UpdateEditMode();
 
 	void StartSimulation();
 	void StopSimulation();
@@ -51,10 +52,14 @@ private:
 	void ShowInfo();
 
 	std::shared_ptr<MassPoint> FindMassPoint(olc::vf2d pos);
+	std::shared_ptr<TwoPointsElement> FindTwoPointsElement(olc::vf2d pos);
+	std::shared_ptr<Element> FindAnyElement(olc::vf2d pos);
 
 	void ResetSetup();
 	void InitSpringTests();
 	void InitDoublePendulum();
+
+	void OnSelectElement(std::shared_ptr<Element> element);
 
 private:
 
@@ -64,6 +69,7 @@ private:
 	bool mIsSimulationRunning = false;
 	EditMode mEditMode = EditMode::COUNT;
 
+	std::shared_ptr<Element> mElementToAdd = nullptr;
 	std::shared_ptr<Element> mElementSelected = nullptr;
 
 	std::vector<std::shared_ptr<MassPoint>> mMassPoints;
@@ -77,6 +83,8 @@ private:
 
 	std::shared_ptr<UIButton> mUIButtonPlayPause;
 	std::shared_ptr<UISlider> mUISliderGravity = nullptr;
+
+	std::vector < std::shared_ptr<UISlider>> mUISlidersSelected;
 
 	yape2d::YapeEngine mPhysicsEngine;
 

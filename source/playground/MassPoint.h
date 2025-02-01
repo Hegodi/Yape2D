@@ -18,13 +18,13 @@ public:
 
 	void SetMass(float mass)
 	{
-		mMass = 1.0f;
+		mMass = mass;
 		mRadius = 10 * sqrt(mass);
 	}
 	float GetMass() const { return mMass; }
-	olc::vf2d GetPosition() const { return mPosition; }
+	olc::vf2d GetPosition() const override { return mPosition; }
 
-	void Draw(Playground* wb) override
+	void Draw(Playground* wb, int debugLevel) override
 	{
 		if (mIsFixed)
 		{

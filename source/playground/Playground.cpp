@@ -1,6 +1,7 @@
 #include <Playground.h>
 #include <MassPoint.h>
 #include <Spring.h>
+#include <Rod.h>
 #include <UI/UIButton.h>
 #include <UI/UISlider.h>
 
@@ -78,21 +79,21 @@ bool Playground::OnUserCreate()
 		mUIElementsEdit.push_back(mUISliderGravity);
 	}
 
-	posX = ScreenWidth() - 105;
-	posY = 5;
+	posX = 5;
+	posY = ScreenHeight() - buttonHeight - 5;
 	{
 		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Clear All", [this]() {ResetSetup(); });
 		mUIElements.push_back(btn);
 		mUIElementsEdit.push_back(btn);
 	}
 	{
-		posY += 35;
+		posX += buttonWidth + 10;
 		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Double Pend", [this]() {InitDoublePendulum(); });
 		mUIElements.push_back(btn);
 		mUIElementsEdit.push_back(btn);
 	}
 	{
-		posY += 35;
+		posX += buttonWidth + 5;
 		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Springs", [this]() {InitSpringTests(); });
 		mUIElements.push_back(btn);
 		mUIElementsEdit.push_back(btn);
@@ -100,6 +101,7 @@ bool Playground::OnUserCreate()
 
 
 	ResetSetup();
+	SwitchEditMode(EditMode::Edit);
 	return true;
 }
 
@@ -119,23 +121,23 @@ bool Playground::OnUserUpdate(float fElapsedTime)
 	{
 		if (!interactionWithUI)
 		{
-			UpdateEditMode();
+			UpdateEditor();
 		}
 	}
-
 
 	return true;
 }
 
 void Playground::DrawElements()
 {
+	int debugLevel = mIsSimulationRunning ? 0 : 1; 
 	for (auto const& ele : mMassPoints)
 	{
-		ele->Draw(this);
+		ele->Draw(this, debugLevel);
 	}
 	for (auto const& spr : mTwoPointsElements)
 	{
-		spr->Draw(this);
+		spr->Draw(this, debugLevel);
 	}
 }
 
@@ -145,11 +147,18 @@ bool Playground::UpdateUI()
 	{
 		if (btn->Update(this))
 		{
-			// If one element return true (i.e has been clicked on)
-			// we don't check more
 			return true;
 		}
 	}
+
+	for (auto slider : mUISlidersSelected)
+	{
+		if (slider->Update(this))
+		{
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -158,6 +167,10 @@ void Playground::DrawUI()
 	for (auto& btn : mUIElements)
 	{
 		btn->Draw(this);
+	}
+	for (auto slider : mUISlidersSelected)
+	{
+		slider->Draw(this);
 	}
 }
 
@@ -169,7 +182,7 @@ void Playground::SwitchEditMode(EditMode mode)
 	}
 
 	mEditMode = mode;
-	mElementSelected = nullptr;
+	mElementToAdd = nullptr;
 
 	std::string buttonName;
 	switch (mEditMode)
@@ -209,16 +222,18 @@ void Playground::SwitchEditMode(EditMode mode)
 	}
 }
 
-void Playground::UpdateEditMode()
+void Playground::UpdateEditor()
 {
 	if (GetKey(olc::M).bPressed)
 	{
 		SwitchEditMode(static_cast<EditMode>((static_cast<int>(mEditMode) + 1) % static_cast<int>(EditMode::COUNT)));
 	}
 
-
 	switch (mEditMode)
 	{
+	case Playground::EditMode::Edit:
+		UpdateEditMode();
+		break;
 	case Playground::EditMode::AddAnchor:
 		UpdateAddPoint();
 		break;
@@ -235,9 +250,15 @@ void Playground::UpdateEditMode()
 		break;
 	}
 
+	if (mElementToAdd != nullptr)
+	{
+		mElementToAdd->Draw(this, 0);
+	}
+
 	if (mElementSelected != nullptr)
 	{
-		mElementSelected->Draw(this);
+		const int RadiusSelected = 15;
+		DrawCircle(FromWorldToScreen(mElementSelected->GetPosition()), RadiusSelected, olc::RED);
 	}
 
 }
@@ -265,32 +286,14 @@ void Playground::UpdateAddPoint()
 		mp->SetPosition(FromScreenToWorld(GetMousePos()));
 		mMassPoints.push_back(mp);
 	}
-	else if (GetMouse(1).bPressed)
-	{
-		auto mp = FindMassPoint(GetMousePos());
-		if (mp != nullptr)
-		{
-			std::erase_if(mTwoPointsElements, [mp](std::shared_ptr<TwoPointsElement> tpe) { return tpe->GetMassPointEnd() == mp || tpe->GetMassPointStart() == mp; });
-			mIsSimulationDirty = true;
-
-			for (auto it = mMassPoints.begin(); it != mMassPoints.end(); it++)
-			{
-				if (*it == mp)
-				{
-					mMassPoints.erase(it);
-					break;
-				}
-			}
-		}
-	}
 }
 
 void Playground::UpdateAddTwoPoints()
 {
-	if (mElementSelected != nullptr)
+	if (mElementToAdd != nullptr)
 	{
-		auto spring = std::dynamic_pointer_cast<TwoPointsElement>(mElementSelected);
-		spring->SetTemporaryEndPoint(FromScreenToWorld(GetMousePos()));
+		auto tpe = std::dynamic_pointer_cast<TwoPointsElement>(mElementToAdd);
+		tpe->SetTemporaryEndPoint(FromScreenToWorld(GetMousePos()));
 
 	}
 	if (GetMouse(0).bPressed)
@@ -299,16 +302,21 @@ void Playground::UpdateAddTwoPoints()
 		if (mp != nullptr)
 		{
 			
-			if (mElementSelected == nullptr)
+			if (mElementToAdd == nullptr)
 			{
-				std::shared_ptr<TwoPointsElement> tpe = mEditMode == EditMode::AddSpring ? std::make_shared<Spring>() : std::make_shared<TwoPointsElement>();
+				std::shared_ptr<TwoPointsElement> tpe = nullptr;
+				if (mEditMode == EditMode::AddSpring)
+					tpe = std::make_shared<Spring>();
+				else 
+					tpe = std::make_shared<Rod>();
+
 				tpe->SetPointStart(mp);
 				tpe->SetTemporaryEndPoint(FromScreenToWorld(GetMousePos()));
-				mElementSelected = tpe;
+				mElementToAdd = tpe;
 			}
 			else
 			{
-				auto tpe = std::dynamic_pointer_cast<TwoPointsElement>(mElementSelected);
+				auto tpe = std::dynamic_pointer_cast<TwoPointsElement>(mElementToAdd);
 				tpe->SetPointEnd(mp);
 
 				auto it = std::find_if(mTwoPointsElements.begin(), mTwoPointsElements.end(), [tpe](std::shared_ptr<TwoPointsElement> const& e) {return e->HasTheSameConnections(tpe); });
@@ -316,7 +324,7 @@ void Playground::UpdateAddTwoPoints()
 				{
 					mTwoPointsElements.push_back(tpe);
 					mIsSimulationDirty = true;
-					mElementSelected = nullptr;
+					mElementToAdd = nullptr;
 				}
 				else
 				{
@@ -327,12 +335,46 @@ void Playground::UpdateAddTwoPoints()
 	}
 	else if (GetMouse(1).bPressed)
 	{
-		mElementSelected = nullptr;
+		mElementToAdd = nullptr;
 	}
 }
 
+void Playground::UpdateEditMode()
+{
+	if (auto ele = FindAnyElement(GetMousePos()))
+	{
+		if (GetMouse(0).bPressed)
+		{
+			OnSelectElement(ele);
+		}
+		else if (GetMouse(1).bPressed)
+		{
+			if (ele == mElementSelected)
+			{
+				OnSelectElement(nullptr);
+			}
+
+			if (auto mp = std::dynamic_pointer_cast<MassPoint>(ele))
+			{
+				std::erase_if(mTwoPointsElements, [mp](std::shared_ptr<TwoPointsElement> tpe) { return tpe->GetMassPointEnd() == mp || tpe->GetMassPointStart() == mp; });
+				mMassPoints.erase(std::remove(mMassPoints.begin(), mMassPoints.end(), mp), mMassPoints.end());
+				mIsSimulationDirty = true;
+			}
+			else if (auto tpe = std::dynamic_pointer_cast<TwoPointsElement>(ele))
+			{
+				mTwoPointsElements.erase(std::remove(mTwoPointsElements.begin(), mTwoPointsElements.end(), tpe), mTwoPointsElements.end());
+				mIsSimulationDirty = true;
+			}
+		}
+	}
+
+
+}
+
+
 void Playground::StartSimulation()
 {
+	OnSelectElement(nullptr);
 	if (mIsSimulationDirty)
 	{
 		mPhysicsEngine.Reset();
@@ -399,6 +441,38 @@ std::shared_ptr<MassPoint> Playground::FindMassPoint(olc::vf2d pos)
 	return nullptr;
 }
 
+std::shared_ptr<TwoPointsElement> Playground::FindTwoPointsElement(olc::vf2d pos)
+{
+	for (auto const& tpe : mTwoPointsElements)
+	{
+		if ((pos - FromWorldToScreen(tpe->GetPosition())).mag() < TwoPointElementInteractionRadius)
+		{
+			return tpe;
+		}
+	}
+	return nullptr;
+}
+
+std::shared_ptr<Element> Playground::FindAnyElement(olc::vf2d pos)
+{
+	for (auto const& mp : mMassPoints)
+	{
+		if ((pos - FromWorldToScreen(mp->GetPosition())).mag() < mp->GetRadius())
+		{
+			return mp;
+		}
+	}
+
+	for (auto const& pte : mTwoPointsElements)
+	{
+		if ((pos - FromWorldToScreen(pte->GetPosition())).mag() < TwoPointElementInteractionRadius)
+		{
+			return pte;
+		}
+	}
+	return nullptr;
+}
+
 void Playground::ResetSetup()
 {
 	StopSimulation();
@@ -459,14 +533,14 @@ void Playground::InitDoublePendulum()
 	mMassPoints.push_back(mp3);
 
 	{
-		auto rod = std::make_shared<TwoPointsElement>();
+		auto rod = std::make_shared<Rod>();
 		rod->SetPointStart(mp1);
 		rod->SetPointEnd(mp2);
 		mTwoPointsElements.push_back(rod);
 	}
 
 	{
-		auto rod = std::make_shared<TwoPointsElement>();
+		auto rod = std::make_shared<Rod>();
 		rod->SetPointStart(mp2);
 		rod->SetPointEnd(mp3);
 		mTwoPointsElements.push_back(rod);
@@ -474,6 +548,50 @@ void Playground::InitDoublePendulum()
 
 	mUISliderGravity->SetValue(9.8f);
 	mIsSimulationDirty = true;
+}
+
+void Playground::OnSelectElement(std::shared_ptr<Element> element)
+{
+	if (element == mElementSelected)
+	{
+		return;
+	}
+	mElementSelected = element;
+	
+	mUISlidersSelected.clear();
+	if (element == nullptr)
+	{
+		return;
+	}
+
+	int posX = ScreenWidth() - 200;
+	int posY = 15;
+	if (auto mp = std::dynamic_pointer_cast<MassPoint>(element))
+	{
+		if (!mp->IsFixed())
+		{
+			auto sliderMass = std::make_shared<UISlider>(posX, posY, 100, 25, "Mass");
+			sliderMass->SetLimits(0.1f, 20.0f);
+			sliderMass->SetValue(mp->GetMass());
+			sliderMass->SetCallback([this](float value) { std::dynamic_pointer_cast<MassPoint>(mElementSelected)->SetMass(value); });
+			mUISlidersSelected.push_back(sliderMass);
+		}
+	}
+	else if (auto spring = std::dynamic_pointer_cast<Spring>(element))
+	{
+		auto sliderLength = std::make_shared<UISlider>(posX, posY, 100, 25, "Length");
+		sliderLength->SetLimits(0.1f, 5.0f);
+		sliderLength->SetValue(spring->GetLength());
+		sliderLength->SetCallback([this](float value) { std::dynamic_pointer_cast<Spring>(mElementSelected)->SetLength(value); });
+		mUISlidersSelected.push_back(sliderLength);
+
+		posY += 30;
+		auto sliderElastic = std::make_shared<UISlider>(posX, posY, 100, 25, "Elastic Constant");
+		sliderElastic->SetLimits(0.1f, 20.0f);
+		sliderElastic->SetValue(spring->GetElasticConstant());
+		sliderElastic->SetCallback([this](float value) { std::dynamic_pointer_cast<Spring>(mElementSelected)->SetElasticConstant(value); });
+		mUISlidersSelected.push_back(sliderElastic);
+	}
 }
 
 olc::vf2d Playground::FromScreenToWorld(olc::vf2d const& pos) const

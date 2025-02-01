@@ -4,6 +4,8 @@
 
 #include <MassPoint.h>
 
+constexpr int TwoPointElementInteractionRadius = 10;
+
 class TwoPointsElement : public Element
 {
 public:
@@ -24,6 +26,16 @@ public:
 		}
 	}
 
+	olc::vf2d GetPosition() const override
+	{
+		if (mP1 == nullptr)
+			return { -1000.0f, -1000.0f };
+		else if (mP2 == nullptr)
+			return mP1->GetPosition();
+
+		return (mP1->GetPosition() + mP2->GetPosition()) * 0.5f;
+	}
+
 	float GetLength() const { return mLength; }
 
 	bool HasStartPoint() const { return mP1 != nullptr; }
@@ -34,18 +46,7 @@ public:
 
 	void SetTemporaryEndPoint(olc::vf2d pos) { mTemporaryEndPoint = pos; }
 
-	void Draw(Playground* wb) override
-	{
-		if (!HasStartPoint())
-		{
-			return;
-		}
-
-		olc::vf2d start = wb->FromWorldToScreen(mP1->GetPosition());
-		olc::vf2d end = wb->FromWorldToScreen(HasEndPoint() ? mP2->GetPosition() : mTemporaryEndPoint);
-
-		wb->DrawLine(start , end, olc::GREEN);
-	}
+	void Draw(Playground* wb, int debugLevel) override = 0;
 
 	bool HasTheSameConnections(std::shared_ptr<TwoPointsElement> other)
 	{
