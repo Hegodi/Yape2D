@@ -2,6 +2,7 @@
 #include <MassPoint.h>
 #include <Spring.h>
 #include <UI/UIButton.h>
+#include <UI/UISlider.h>
 
 Playground::Playground()
 {
@@ -13,12 +14,12 @@ bool Playground::OnUserCreate()
 	mOffset = { ScreenWidth() * 0.5f, ScreenHeight() * 0.5f };
 
 
-	int buttonX = 5;
-	int buttonY = 5;
+	int posX = 5;
+	int posY = 5;
 	const int buttonWidth = 100;
 	const int buttonHeight = 30;
 
-	mUIButtonPlayPause = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Run", [this]() 
+	mUIButtonPlayPause = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Run", [this]() 
 	{
 		if (mIsSimulationRunning)
 		{
@@ -34,44 +35,69 @@ bool Playground::OnUserCreate()
 	mUIElements.push_back(mUIButtonPlayPause);
 
 
-	buttonY = 100;
+	posY = 100;
 	{
-		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Mass Point", [this]() { SwitchEditMode(EditMode::AddMass);});
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Edit", [this]() { SwitchEditMode(EditMode::Edit);});
+		btn->SetName("Edit");
 		mUIElements.push_back(btn);
-		mUIButtonsEdit.push_back(btn);
+		mUIElementsEdit.push_back(btn);
 	}
 	{
-		buttonY += 35;
-		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Spring", [this]() { SwitchEditMode(EditMode::AddSpring);});
+		posY += 35;
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Add Anchor", [this]() { SwitchEditMode(EditMode::AddAnchor);});
+		btn->SetName("AddAnchor");
 		mUIElements.push_back(btn);
-		mUIButtonsEdit.push_back(btn);
+		mUIElementsEdit.push_back(btn);
 	}
 	{
-		buttonY += 35;
-		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Rod", [this]() { SwitchEditMode(EditMode::AddTwoPointsElement);});
+		posY += 35;
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Add Mass", [this]() { SwitchEditMode(EditMode::AddMass);});
+		btn->SetName("AddMass");
 		mUIElements.push_back(btn);
-		mUIButtonsEdit.push_back(btn);
+		mUIElementsEdit.push_back(btn);
+	}
+	{
+		posY += 35;
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Add Spring", [this]() { SwitchEditMode(EditMode::AddSpring);});
+		btn->SetName("AddSpring");
+		mUIElements.push_back(btn);
+		mUIElementsEdit.push_back(btn);
+	}
+	{
+		posY += 35;
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Add Rod", [this]() { SwitchEditMode(EditMode::AddRod);});
+		btn->SetName("AddRod");
+		mUIElements.push_back(btn);
+		mUIElementsEdit.push_back(btn);
+	}
+	{
+		posY += 50;
+		mUISliderGravity = std::make_shared<UISlider>(posX, posY, 100, 20, "Gravity");
+		mUISliderGravity->SetLimits(0.0f, 20.0f);
+		mUIElements.push_back(mUISliderGravity);
+		mUIElementsEdit.push_back(mUISliderGravity);
 	}
 
-	buttonX = ScreenWidth() - 105;
-	buttonY = 5;
+	posX = ScreenWidth() - 105;
+	posY = 5;
 	{
-		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Clear All", [this]() {ResetSetup(); });
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Clear All", [this]() {ResetSetup(); });
 		mUIElements.push_back(btn);
-		mUIButtonsEdit.push_back(btn);
+		mUIElementsEdit.push_back(btn);
 	}
 	{
-		buttonY += 35;
-		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Double Pend", [this]() {InitDoublePendulum(); });
+		posY += 35;
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Double Pend", [this]() {InitDoublePendulum(); });
 		mUIElements.push_back(btn);
-		mUIButtonsEdit.push_back(btn);
+		mUIElementsEdit.push_back(btn);
 	}
 	{
-		buttonY += 35;
-		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Springs", [this]() {InitSpringTests(); });
+		posY += 35;
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Springs", [this]() {InitSpringTests(); });
 		mUIElements.push_back(btn);
-		mUIButtonsEdit.push_back(btn);
+		mUIElementsEdit.push_back(btn);
 	}
+
 
 	ResetSetup();
 	return true;
@@ -144,6 +170,43 @@ void Playground::SwitchEditMode(EditMode mode)
 
 	mEditMode = mode;
 	mElementSelected = nullptr;
+
+	std::string buttonName;
+	switch (mEditMode)
+	{
+	case Playground::EditMode::Edit:
+		buttonName = "Edit";
+		break;
+	case Playground::EditMode::AddAnchor:
+		buttonName = "AddAnchor";
+		break;
+	case Playground::EditMode::AddMass:
+		buttonName = "AddMass";
+		break;
+	case Playground::EditMode::AddSpring:
+		buttonName = "AddSpring";
+		break;
+	case Playground::EditMode::AddRod:
+		buttonName = "AddRod";
+		break;
+	default:
+		break;
+	}
+
+	for (auto ele : mUIElementsEdit)
+	{
+		auto btn = std::dynamic_pointer_cast<UIButton>(ele);
+		if (btn == nullptr)
+			continue;
+		if (btn->GetName() == buttonName)
+		{
+			btn->SetDefaultColor(olc::DARK_GREEN);
+		}
+		else
+		{
+			btn->DefaultColor();
+		}
+	}
 }
 
 void Playground::UpdateEditMode()
@@ -153,15 +216,19 @@ void Playground::UpdateEditMode()
 		SwitchEditMode(static_cast<EditMode>((static_cast<int>(mEditMode) + 1) % static_cast<int>(EditMode::COUNT)));
 	}
 
+
 	switch (mEditMode)
 	{
+	case Playground::EditMode::AddAnchor:
+		UpdateAddPoint();
+		break;
 	case Playground::EditMode::AddMass:
 		UpdateAddPoint();
 		break;
 	case Playground::EditMode::AddSpring:
 		UpdateAddTwoPoints();
 		break;
-	case Playground::EditMode::AddTwoPointsElement:
+	case Playground::EditMode::AddRod:
 		UpdateAddTwoPoints();
 		break;
 	default:
@@ -191,6 +258,10 @@ void Playground::UpdateAddPoint()
 	if (GetMouse(0).bPressed)
 	{
 		auto mp = std::make_shared<MassPoint>();
+		if (mEditMode == EditMode::AddAnchor)
+		{
+			mp->SetFixed();
+		}
 		mp->SetPosition(FromScreenToWorld(GetMousePos()));
 		mMassPoints.push_back(mp);
 	}
@@ -289,9 +360,10 @@ void Playground::StartSimulation()
 		}
 	}
 
+	mPhysicsEngine.SetGravity(mUISliderGravity->GetValue());
 	mIsSimulationRunning = true;
 
-	for (auto btn : mUIButtonsEdit)
+	for (auto btn : mUIElementsEdit)
 	{
 		btn->Hide();
 	}
@@ -300,7 +372,7 @@ void Playground::StartSimulation()
 void Playground::StopSimulation()
 {
 	mIsSimulationRunning = false;
-	for (auto btn : mUIButtonsEdit)
+	for (auto btn : mUIElementsEdit)
 	{
 		btn->Show();
 	}
@@ -334,6 +406,7 @@ void Playground::ResetSetup()
 	mTwoPointsElements.clear();
 	mPhysicsEngine.Reset();
 	mIsSimulationDirty = true;
+	mUISliderGravity->SetValue(9.8f);
 }
 
 void Playground::InitSpringTests()
@@ -366,6 +439,7 @@ void Playground::InitSpringTests()
 		mTwoPointsElements.push_back(rod);
 	}
 	mIsSimulationDirty = true;
+	mUISliderGravity->SetValue(9.8f);
 }
 
 void Playground::InitDoublePendulum()
@@ -398,7 +472,7 @@ void Playground::InitDoublePendulum()
 		mTwoPointsElements.push_back(rod);
 	}
 
-	mPhysicsEngine.SetGravity(9.8);
+	mUISliderGravity->SetValue(9.8f);
 	mIsSimulationDirty = true;
 }
 

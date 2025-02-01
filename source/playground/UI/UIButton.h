@@ -48,6 +48,10 @@ public:
 
 	void SetText(const char* text) { mText = text; }
 
+	void SetDefaultColor(olc::Pixel color) { mColor = color; }
+	void DefaultColor() { mColor = olc::GREY; }
+
+
 private:
 	olc::Pixel mColor = olc::GREY;
 	std::string mText;

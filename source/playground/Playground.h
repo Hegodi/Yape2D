@@ -8,6 +8,7 @@ class MassPoint;
 class TwoPointsElement;
 class UIBase;
 class UIButton;
+class UISlider;
 
 class Playground : public olc::PixelGameEngine
 {
@@ -24,9 +25,11 @@ public:
 private:
 	enum class EditMode
 	{
+		Edit,
+		AddAnchor,
 		AddMass,
 		AddSpring,
-		AddTwoPointsElement,
+		AddRod,
 		COUNT
 	};
 
@@ -69,9 +72,11 @@ private:
 
 	// UI
 	std::vector<std::shared_ptr<UIBase>> mUIElements;
-	std::vector<std::shared_ptr<UIButton>> mUIButtonsEdit;
+
+	std::vector<std::shared_ptr<UIBase>> mUIElementsEdit;
 
 	std::shared_ptr<UIButton> mUIButtonPlayPause;
+	std::shared_ptr<UISlider> mUISliderGravity = nullptr;
 
 	yape2d::YapeEngine mPhysicsEngine;
 

@@ -1,10 +1,9 @@
 #pragma once 
-#include <Playground.h>
-
 namespace olc
 {
 	class PixelGameEngine;
 }
+class Playground;
 
 
 class UIBase
@@ -32,6 +31,8 @@ public:
 
 	void Hide() { mHidden = true; }
 	void Show() { mHidden = false;}
+	void SetName(const char* name) { mName = name; }
+	std::string_view GetName() const { return mName; }
 
 protected:
 	virtual void DrawInternal(Playground* playground) const = 0;
@@ -41,5 +42,6 @@ protected:
 
 private:
 	bool mHidden = false;
+	std::string mName;
 
 };
