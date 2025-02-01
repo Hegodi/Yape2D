@@ -1,12 +1,13 @@
 #pragma once
 #include <olcPixelGameEngine.h>
-#include <Button.h>
 #include <yape2d/YapeEngine.h>
 
 
 class Element;
 class MassPoint;
 class TwoPointsElement;
+class UIBase;
+class UIButton;
 
 class Playground : public olc::PixelGameEngine
 {
@@ -30,6 +31,8 @@ private:
 	};
 
 	void DrawElements();
+	bool UpdateUI();
+	void DrawUI();
 
 	void SwitchEditMode(EditMode mode);
 
@@ -41,6 +44,8 @@ private:
 
 	void StartSimulation();
 	void StopSimulation();
+
+	void ShowInfo();
 
 	std::shared_ptr<MassPoint> FindMassPoint(olc::vf2d pos);
 
@@ -61,11 +66,12 @@ private:
 	std::vector<std::shared_ptr<MassPoint>> mMassPoints;
 	std::vector<std::shared_ptr<TwoPointsElement>> mTwoPointsElements;
 
-	std::vector<std::shared_ptr<Button>> mButtons;
 
-	std::vector<std::shared_ptr<Button>> mButtonsEdit;
+	// UI
+	std::vector<std::shared_ptr<UIBase>> mUIElements;
+	std::vector<std::shared_ptr<UIButton>> mUIButtonsEdit;
 
-	std::shared_ptr<Button> mButtonPlayPause;
+	std::shared_ptr<UIButton> mUIButtonPlayPause;
 
 	yape2d::YapeEngine mPhysicsEngine;
 

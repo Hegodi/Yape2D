@@ -1,6 +1,7 @@
 #include <Playground.h>
 #include <MassPoint.h>
 #include <Spring.h>
+#include <UI/UIButton.h>
 
 Playground::Playground()
 {
@@ -17,59 +18,59 @@ bool Playground::OnUserCreate()
 	const int buttonWidth = 100;
 	const int buttonHeight = 30;
 
-	mButtonPlayPause = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Run", [this]() 
+	mUIButtonPlayPause = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Run", [this]() 
 	{
 		if (mIsSimulationRunning)
 		{
-			mButtonPlayPause->SetText("Run");
+			mUIButtonPlayPause->SetText("Run");
 			StopSimulation();
 		}
 		else
 		{
-			mButtonPlayPause->SetText("Stop");
+			mUIButtonPlayPause->SetText("Stop");
 			StartSimulation();
 		}
 	});
-	mButtons.push_back(mButtonPlayPause);
+	mUIElements.push_back(mUIButtonPlayPause);
 
 
 	buttonY = 100;
 	{
-		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Mass Point", [this]() { SwitchEditMode(EditMode::AddMass);});
-		mButtons.push_back(btn);
-		mButtonsEdit.push_back(btn);
+		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Mass Point", [this]() { SwitchEditMode(EditMode::AddMass);});
+		mUIElements.push_back(btn);
+		mUIButtonsEdit.push_back(btn);
 	}
 	{
 		buttonY += 35;
-		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Spring", [this]() { SwitchEditMode(EditMode::AddSpring);});
-		mButtons.push_back(btn);
-		mButtonsEdit.push_back(btn);
+		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Spring", [this]() { SwitchEditMode(EditMode::AddSpring);});
+		mUIElements.push_back(btn);
+		mUIButtonsEdit.push_back(btn);
 	}
 	{
 		buttonY += 35;
-		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Rod", [this]() { SwitchEditMode(EditMode::AddTwoPointsElement);});
-		mButtons.push_back(btn);
-		mButtonsEdit.push_back(btn);
+		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Rod", [this]() { SwitchEditMode(EditMode::AddTwoPointsElement);});
+		mUIElements.push_back(btn);
+		mUIButtonsEdit.push_back(btn);
 	}
 
 	buttonX = ScreenWidth() - 105;
 	buttonY = 5;
 	{
-		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Clear All", [this]() {ResetSetup(); });
-		mButtons.push_back(btn);
-		mButtonsEdit.push_back(btn);
+		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Clear All", [this]() {ResetSetup(); });
+		mUIElements.push_back(btn);
+		mUIButtonsEdit.push_back(btn);
 	}
 	{
 		buttonY += 35;
-		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Double Pend", [this]() {InitDoublePendulum(); });
-		mButtons.push_back(btn);
-		mButtonsEdit.push_back(btn);
+		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Double Pend", [this]() {InitDoublePendulum(); });
+		mUIElements.push_back(btn);
+		mUIButtonsEdit.push_back(btn);
 	}
 	{
 		buttonY += 35;
-		auto btn = std::make_shared<Button>(buttonX, buttonY, buttonWidth, buttonHeight, "Springs", [this]() {InitSpringTests(); });
-		mButtons.push_back(btn);
-		mButtonsEdit.push_back(btn);
+		auto btn = std::make_shared<UIButton>(buttonX, buttonY, buttonWidth, buttonHeight, "Springs", [this]() {InitSpringTests(); });
+		mUIElements.push_back(btn);
+		mUIButtonsEdit.push_back(btn);
 	}
 
 	ResetSetup();
@@ -81,15 +82,8 @@ bool Playground::OnUserUpdate(float fElapsedTime)
 	Clear(olc::BLACK);
 
 	DrawElements();
-
-	for (auto& btn : mButtons)
-	{
-		if (btn->Update(this))
-		{
-			return true;
-		}
-	}
-
+	DrawUI();
+	bool interactionWithUI = UpdateUI();
 
 	if (mIsSimulationRunning)
 	{
@@ -97,27 +91,12 @@ bool Playground::OnUserUpdate(float fElapsedTime)
 	}
 	else
 	{
-		UpdateEditMode();
-	}
-
-
-	std::string info;
-	info = "Mass Points " + std::to_string(mMassPoints.size()) + "\n";
-	info += "Two Points Elements: " + std::to_string(mTwoPointsElements.size()) + "\n";
-
-	DrawString(10, ScreenHeight() - 50 , info, olc::WHITE);
-
-	if (GetKey(olc::SPACE).bPressed)
-	{
-		if (!mIsSimulationRunning)
+		if (!interactionWithUI)
 		{
-			StartSimulation();
-		}
-		else
-		{
-			mIsSimulationRunning = false;
+			UpdateEditMode();
 		}
 	}
+
 
 	return true;
 }
@@ -131,6 +110,28 @@ void Playground::DrawElements()
 	for (auto const& spr : mTwoPointsElements)
 	{
 		spr->Draw(this);
+	}
+}
+
+bool Playground::UpdateUI()
+{
+	for (auto& btn : mUIElements)
+	{
+		if (btn->Update(this))
+		{
+			// If one element return true (i.e has been clicked on)
+			// we don't check more
+			return true;
+		}
+	}
+	return false;
+}
+
+void Playground::DrawUI()
+{
+	for (auto& btn : mUIElements)
+	{
+		btn->Draw(this);
 	}
 }
 
@@ -152,27 +153,20 @@ void Playground::UpdateEditMode()
 		SwitchEditMode(static_cast<EditMode>((static_cast<int>(mEditMode) + 1) % static_cast<int>(EditMode::COUNT)));
 	}
 
-	std::string txt = "Edit Mode: ";
-
 	switch (mEditMode)
 	{
 	case Playground::EditMode::AddMass:
-		txt += "Add Mass Point";
 		UpdateAddPoint();
 		break;
 	case Playground::EditMode::AddSpring:
-		txt += "Add Spring";
 		UpdateAddTwoPoints();
 		break;
 	case Playground::EditMode::AddTwoPointsElement:
-		txt += "Add TwoPointsElement";
 		UpdateAddTwoPoints();
 		break;
 	default:
 		break;
 	}
-	txt += "\nPusa M to switch";
-	DrawString(10, 10, txt, olc::WHITE);
 
 	if (mElementSelected != nullptr)
 	{
@@ -297,7 +291,7 @@ void Playground::StartSimulation()
 
 	mIsSimulationRunning = true;
 
-	for (auto btn : mButtonsEdit)
+	for (auto btn : mUIButtonsEdit)
 	{
 		btn->Hide();
 	}
@@ -306,10 +300,19 @@ void Playground::StartSimulation()
 void Playground::StopSimulation()
 {
 	mIsSimulationRunning = false;
-	for (auto btn : mButtonsEdit)
+	for (auto btn : mUIButtonsEdit)
 	{
 		btn->Show();
 	}
+}
+
+void Playground::ShowInfo()
+{
+	std::string info;
+	info = "Mass Points " + std::to_string(mMassPoints.size()) + "\n";
+	info += "Two Points Elements: " + std::to_string(mTwoPointsElements.size()) + "\n";
+
+	DrawString(10, ScreenHeight() - 50 , info, olc::WHITE);
 }
 
 std::shared_ptr<MassPoint> Playground::FindMassPoint(olc::vf2d pos)

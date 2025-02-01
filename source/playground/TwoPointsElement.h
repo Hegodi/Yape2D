@@ -2,7 +2,6 @@
 
 #include <olcPixelGameEngine.h>
 
-#include <Element.h>
 #include <MassPoint.h>
 
 class TwoPointsElement : public Element
