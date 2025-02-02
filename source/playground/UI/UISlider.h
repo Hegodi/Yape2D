@@ -3,6 +3,7 @@
 #include <functional>
 #include <UI/UIBase.h>
 #include <assert.h>
+#include <stdlib.h>
 
 using OnChangeCallback = std::function<void(float value)>;
 class UISlider : public UIBase
@@ -72,7 +73,7 @@ public:
 		pg->FillRect(mRailPos, mRailSize, olc::DARK_GREY);
 		pg->FillRect(mCursorPos, mCursorSize, mColor);
 		char buffer[128];
-		sprintf_s(buffer, "%s %.1f", mLabel.c_str(), mValue);
+		snprintf(buffer, sizeof(buffer), "%s %.1f", mLabel.c_str(), mValue);
 		pg->DrawString(mLabelPos, buffer, olc::WHITE);
 	}
 

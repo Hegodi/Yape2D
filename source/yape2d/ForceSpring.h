@@ -58,6 +58,7 @@ namespace yape2d
 			{
 				force *= -1;
 			}
+			return force;
 		}
 
 		float CalculateEnergy(MassPointsData const& data) const override

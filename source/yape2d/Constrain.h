@@ -7,5 +7,6 @@ namespace yape2d
 	{
 	public:
 		virtual void Apply(MassPointsData& data, float correctionWeight = 0.0f) = 0;
+		virtual ~Constrain() = default;
 	};
 }
