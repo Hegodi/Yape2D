@@ -32,10 +32,13 @@ public:
 		olc::vf2d nor = { dir.y, -dir.x };
 
 		const int number_lines = mLength * 10;
-		const float width = 5 + 2*mElasticConstant;
+		if (number_lines == 0)
+		{
+			wb->DrawLine(start, end, olc::YELLOW);
+		}
+		const float width = 5 + mElasticConstant * 0.5f;
 		const float delta = length / number_lines;
 
-		//wb->DrawLine(start, end, olc::YELLOW);
 		for (int i = 0; i < number_lines; i++)
 		{
 			olc::vf2d p0 = i == 0 ? start : start + dir * i * delta + nor * (0.5f - i % 2) * width;

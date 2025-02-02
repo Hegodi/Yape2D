@@ -34,7 +34,7 @@ public:
 		}
 		else
 		{
-			mColor = olc::GREY;
+			mColor = mColorDefault;
 
 		}
 		return false;
@@ -48,12 +48,13 @@ public:
 
 	void SetText(const char* text) { mText = text; }
 
-	void SetDefaultColor(olc::Pixel color) { mColor = color; }
-	void DefaultColor() { mColor = olc::GREY; }
+	void SetDefaultColor(olc::Pixel color) { mColorDefault = color; }
+	void ResetDefaultColor() { mColorDefault = olc::GREY; }
 
 
 private:
 	olc::Pixel mColor = olc::GREY;
+	olc::Pixel mColorDefault = olc::GREY;
 	std::string mText;
 	olc::vi2d mBBmin;
 	olc::vi2d mBBmax;

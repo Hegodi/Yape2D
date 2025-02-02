@@ -45,6 +45,7 @@ private:
 	void UpdateAddPoint();
 	void UpdateAddTwoPoints();
 	void UpdateEditMode();
+	bool UpdateCamera();
 
 	void StartSimulation();
 	void StopSimulation();
@@ -60,6 +61,7 @@ private:
 	void InitDoublePendulum();
 
 	void OnSelectElement(std::shared_ptr<Element> element);
+	void ResetCamera();
 
 private:
 
@@ -77,12 +79,15 @@ private:
 
 
 	// UI
+	bool mMovingCamera = false;
 	std::vector<std::shared_ptr<UIBase>> mUIElements;
 
 	std::vector<std::shared_ptr<UIBase>> mUIElementsEdit;
 
 	std::shared_ptr<UIButton> mUIButtonPlayPause;
+	std::shared_ptr<UIButton> mUIButtonMoveCamera;
 	std::shared_ptr<UISlider> mUISliderGravity = nullptr;
+	std::shared_ptr<UISlider> mUISliderFriction = nullptr;
 
 	std::vector < std::shared_ptr<UISlider>> mUISlidersSelected;
 
@@ -90,4 +95,7 @@ private:
 
 	float mScale = 100.0;
 	olc::vf2d mOffset = { 0.0f, 0.0f };
+	olc::vf2d mLastMousePosition = { 0.0f, 0.0f };
+	bool mIsMovingCamera = false;
+	bool mMoveMoveCamera = false;
 }; 

@@ -6,7 +6,7 @@
 int main()
 {
 	Playground workbench;
-	if (workbench.Construct(1200, 800, 1, 1, false, true))
+	if (workbench.Construct(800, 600, 1, 1, false, true))
 		workbench.Start();
 	return 0;
 }

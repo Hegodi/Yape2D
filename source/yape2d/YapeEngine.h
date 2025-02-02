@@ -16,6 +16,7 @@ namespace yape2d
 	public:
 		void Reset();
 		void SetGravity(float gravity);
+		void SetFriction(float friction);
 
 		void AddPointMass(unsigned int id, float mass, float x, float y);
 		void AddSpring(unsigned int id1, unsigned int id2, float length, float stiffness);
@@ -39,10 +40,10 @@ namespace yape2d
 		void UpdateVelocities(float dt);
 
 	private:
-		float mTime = 0.0;
+		float mTime = 0.0f;
 
-		float mGravity = 0.0;
-		bool mHasGravity = false;
+		float mGravity = 0.0f;
+		float mFriction = 0.0f;
 
 		MassPointsData mData;
 		std::vector<std::unique_ptr<Force>> mForces;

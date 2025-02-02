@@ -16,7 +16,11 @@ namespace yape2d
 	void YapeEngine::SetGravity(float gravity)
 	{
 		mGravity = gravity;
-		mHasGravity = abs(mGravity) > FLT_EPSILON;
+	}
+
+	void YapeEngine::SetFriction(float friction)
+	{
+		mFriction = friction;
 	}
 
 	void YapeEngine::AddPointMass(unsigned int id, float mass, float x, float y)
@@ -66,10 +70,7 @@ namespace yape2d
 		for (int i = 0; i < mData.mM.size(); i++)
 		{
 			T += mData.mM[i] * mData.mV[i].length2();
-			if (mHasGravity)
-			{
-				K = mData.mM[i] * mGravity * mData.mP[i].y;
-			}
+			K = mData.mM[i] * mGravity * mData.mP[i].y;
 		}
 		T *= 0.5;
 
@@ -109,6 +110,7 @@ namespace yape2d
 		{
 			auto a = mData.mF[i] / mData.mM[i];
 			a.y -= mGravity;
+			a -= mData.mV[i] * mFriction;
 			mData.mV[i] += a * dt;
 		}
 	}
