@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(ParphyWorkbench)
+project(Yape2D_Playground)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -24,4 +24,4 @@ else()
 endif()
 
 # Add the executable
-add_executable(ParphyWorkbench ${SOURCES})
+add_executable(Yape2D_Playground ${SOURCES})
