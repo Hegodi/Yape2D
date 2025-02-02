@@ -1752,7 +1752,8 @@ namespace olc
 	uint32_t PixelGameEngine::CreateLayer()
 	{
 		LayerDesc ld;
-		ld.pDrawTarget.Create(vScreenSize.x, vScreenSize.y);
+		// Hegodi: use filter to avoid artifacts in emscripten
+		ld.pDrawTarget.Create(vScreenSize.x, vScreenSize.y, true);
 		vLayers.push_back(std::move(ld));
 		return uint32_t(vLayers.size()) - 1;
 	}
@@ -3037,7 +3038,7 @@ namespace olc
 		{
 			nLastFPS = nFrameCount;
 			fFrameTimer -= 1.0f;
-			std::string sTitle = "OneLoneCoder.com - Pixel Game Engine - " + sAppName + " - FPS: " + std::to_string(nFrameCount);
+			std::string sTitle = sAppName;
 			platform->SetWindowTitle(sTitle);
 			nFrameCount = 0;
 		}
