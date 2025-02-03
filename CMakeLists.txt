@@ -5,13 +5,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(PATH_DATA, "data/")
 
-file(GLOB_RECURSE SOURCES 
-    "source/playground/*.cpp" 
-    "source/yape2d/*.cpp"
-    "external/pugixml*.cpp"
-)
+file(GLOB_RECURSE SOURCES "source/playground/*.cpp" "source/yape2d/*.cpp" "external/pugixml/*.cpp")
 set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/build")
 
 include_directories("source")
@@ -20,7 +15,7 @@ include_directories("external")
 
 if(EMSCRIPTEN)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")  # Output to HTML for Emscripten
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -s ALLOW_MEMORY_GROWTH=1 -s MAX_WEBGL_VERSION=2 -s MIN_WEBGL_VERSION=2 -s USE_LIBPNG=1 --preload-file ${PATH_DATA}") 
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -s ALLOW_MEMORY_GROWTH=1 -s MAX_WEBGL_VERSION=2 -s MIN_WEBGL_VERSION=2 -s USE_LIBPNG=1 --preload-file ../data") 
 
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/emscripten)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/emscripten)

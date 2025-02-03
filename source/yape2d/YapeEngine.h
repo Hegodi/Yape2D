@@ -29,6 +29,8 @@ namespace yape2d
 
 		float CalculateEnergy() const;
 		float GetTime() const { return mTime; }
+		int GetNumberConstrains() const { return mConstrains.size(); }
+		int GetNumberForces() const { return mForces.size(); }
 
 	private:
 		void ResetForces();

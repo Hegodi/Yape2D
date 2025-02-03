@@ -89,6 +89,9 @@ bool SimulationSetup::Load(const char* filename)
 		return false;
 	}
 
+	mGravity = root.attribute(AttributeName_Gravity).as_float();
+	mFriction = root.attribute(AttributeName_Friction).as_float();
+
 	// First load all mass points
 	for (auto child : root.children())
 	{
@@ -132,10 +135,6 @@ bool SimulationSetup::Load(const char* filename)
 			spring->SetLength(child.attribute("length").as_float());
 			spring->SetElasticConstant(child.attribute("k").as_float());
 			mTwoPointsElements.push_back(spring);
-		}
-		else
-		{
-			printf("Error: unkown node: %s\n", key.c_str());
 		}
 	}
 

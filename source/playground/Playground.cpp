@@ -8,7 +8,7 @@
 
 Playground::Playground()
 {
-	sAppName = "Parphys - Playground";
+	sAppName = "Yape 2D - Playground";
 }
 
 bool Playground::OnUserCreate()
@@ -126,7 +126,10 @@ bool Playground::OnUserCreate()
 	}
 	{
 		posX += buttonWidth + 10;
-		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Example A", [this]() {InitBenchamarkA(); });
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Example A", [this]()
+			{
+				LoadSetup("benchmarkA.xml");
+			});
 		mUIElements.push_back(btn);
 		mUIElementsEdit.push_back(btn);
 	}
@@ -152,10 +155,7 @@ bool Playground::OnUserCreate()
 
 		posX -= buttonWidth + 5;
 		auto btn2 = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Load", [this]() {
-			mSetup->Load("../../data/test.xml");
-			mIsSimulationDirty = true;
-			mUISliderGravity->SetValue(mSetup->mGravity);
-			mUISliderFriction->SetValue(mSetup->mFriction);
+			LoadSetup("test.xml");
 		});
 		mUIElements.push_back(btn2);
 		mUIElementsEdit.push_back(btn2);
@@ -333,13 +333,21 @@ void Playground::UpdateEditor()
 
 void Playground::UpdateSimulation(float dt)
 {
+	auto start = std::chrono::high_resolution_clock::now();
+
 	mPhysicsEngine.Update(dt);
+
 
 	for (auto& mp : mSetup->mMassPoints)
 	{
 		auto pos = mPhysicsEngine.GetPosition(mp->GetId());
 		mp->SetPosition(pos.x, pos.y);
 	}
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> elapsed = end - start;
+
+	ShowInfo(elapsed.count());
 }
 
 void Playground::UpdateAddPoint()
@@ -541,13 +549,16 @@ void Playground::StopSimulation()
 	}
 }
 
-void Playground::ShowInfo()
+void Playground::ShowInfo(float delta)
 {
 	std::string info;
-	info = "Mass Points " + std::to_string(mSetup->mMassPoints.size()) + "\n";
-	info += "Two Points Elements: " + std::to_string(mSetup->mTwoPointsElements.size()) + "\n";
+	info  = "Mass Points         : " + std::to_string(mSetup->mMassPoints.size()) + "\n";
+	info += "Two Points Elements : " + std::to_string(mSetup->mTwoPointsElements.size()) + "\n";
+	info += "Constrains          : " + std::to_string(mPhysicsEngine.GetNumberConstrains()) + "\n";
+	info += "Forces              : " + std::to_string(mPhysicsEngine.GetNumberForces()) + "\n";
+	info += "Physics update frame: " + std::to_string(delta) + "ms \n";
 
-	DrawString(10, ScreenHeight() - 50 , info, olc::WHITE);
+	DrawString(ScreenWidth() - 270, 10, info, olc::WHITE);
 }
 
 std::shared_ptr<MassPoint> Playground::FindMassPoint(olc::vf2d pos)
@@ -649,7 +660,7 @@ void Playground::InitBenchamarkB()
 	mSetup->Reset();
 
 	auto mp1 = std::make_shared<MassPoint>();
-	mp1->SetPosition(olc::vf2d(0.0f, 3.0f));
+	mp1->SetPosition(olc::vf2d(0.0f, 2.5f));
 	mp1->SetFixed();
 	mSetup->mMassPoints.push_back(mp1);
 
@@ -739,6 +750,14 @@ void Playground::ResetCamera()
 	mUIButtonMoveCamera->ResetDefaultColor();
 	mOffset = { ScreenWidth() * 0.5f, ScreenHeight() * 0.5f };
 	mScale = 100.0f;
+}
+
+void Playground::LoadSetup(const char* filename)
+{
+	mSetup->Load((std::string("../../data/") + std::string(filename)).c_str());
+	mIsSimulationDirty = true;
+	mUISliderGravity->SetValue(mSetup->mGravity);
+	mUISliderFriction->SetValue(mSetup->mFriction);
 }
 
 olc::vf2d Playground::FromScreenToWorld(olc::vf2d const& pos) const

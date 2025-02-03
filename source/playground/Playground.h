@@ -51,7 +51,7 @@ private:
 	void StartSimulation();
 	void StopSimulation();
 
-	void ShowInfo();
+	void ShowInfo(float duration);
 
 	std::shared_ptr<MassPoint> FindMassPoint(olc::vf2d pos);
 	std::shared_ptr<TwoPointsElement> FindTwoPointsElement(olc::vf2d pos);
@@ -63,6 +63,9 @@ private:
 
 	void OnSelectElement(std::shared_ptr<Element> element);
 	void ResetCamera();
+
+private:
+	void LoadSetup(const char* filename);
 
 private:
 
