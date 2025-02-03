@@ -11,6 +11,7 @@ namespace yape2d
 	void YapeEngine::Reset()
 	{
 		mData.Clear();
+		mConstrains.clear();
 	}
 
 	void YapeEngine::SetGravity(float gravity)
