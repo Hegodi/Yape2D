@@ -5,6 +5,30 @@
 		<meta content="text/html; charset=utf-8"http-equiv=Content-Type>
 		<title>WEB_TITLE</title>
 		<style>
+            .main_container {
+                width: 100%;
+      			justify-content: center; /* Center horizontally */
+      			align-items: center; /* Center vertically */
+            }
+            .canvas_container {
+                width: 100%;
+                display: flex;
+      			justify-content: center; /* Center horizontally */
+      			align-items: center; /* Center vertically */
+            }
+
+            .canvas_wrapper {
+                width: 800px;
+                height: 600px;
+            }
+
+			#controls{
+				display: flex;
+      			justify-content: center; /* Center horizontally */
+      			align-items: center; /* Center vertically */
+				margin: 5px;
+			}
+
 			.emscripten{
 				padding-right:0;
 				margin-left:auto;
@@ -16,23 +40,9 @@
 				text-align:center;
 				width: 100%;
 			}
-			div.emscripten_border{
-				border:1px solid #000;
-				width: 100%;
-			}
-			canvas.emscripten{
-				border:0 none;
-				background-color:#000000b7
-			}
 			#progress{
 				height:20px;
 				width:300px
-			}
-			#controls{
-				display: flex;
-      			justify-content: center; /* Center horizontally */
-      			align-items: center; /* Center vertically */
-				margin: 5px;
 			}
 		</style>
 	</head>
@@ -44,9 +54,12 @@
 					<input type=button onclick='Module.requestFullscreen(false, false)'value=Fullscreen>
 			</div>
 			<div class=emscripten><progress hidden id=progress max=100 value=0></progress></div>
-			<div class=emscripten_border>
-				<canvas class=emscripten id=canvas oncontextmenu=event.preventDefault() tabindex=-1> </canvas>
-			</div>
+
+            <div class="canvas_container">
+                <div class="canvas_wrapper">
+                    <canvas id=canvas oncontextmenu=event.preventDefault()> </canvas>
+                </div>
+            </div>
 		</div>
 		<script>
 			var statusElement=document.getElementById("status");
