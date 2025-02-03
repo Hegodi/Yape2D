@@ -44,8 +44,16 @@ namespace yape2d
 
 	void YapeEngine::Update(float dt)
 	{
+		float t = 0;
+		while (t < dt)
+		{
+			SemiImplicitEulerSolver(mMaxTimeStep);
+			ApplyConstrains();
+			t += mMaxTimeStep;
+		}
 
-		SemiImplicitEulerSolver(dt);
+		float lastDt = dt - (t - mMaxTimeStep);
+		SemiImplicitEulerSolver(mMaxTimeStep);
 		ApplyConstrains();
 
 		mTime += dt;
@@ -130,11 +138,11 @@ namespace yape2d
 
 	void YapeEngine::ApplyConstrains()
 	{
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < mConstrainSolver_Iterations; i++)
 		{
 			for (auto const& constrain : mConstrains)
 			{
-				constrain->Apply(mData, 5.0f);
+				constrain->Apply(mData, 50.0f);
 			}
 		}
 	}

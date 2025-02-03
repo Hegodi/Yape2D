@@ -8,6 +8,10 @@ static unsigned int sNextStaticIdForMassPoint = 1000;
 class MassPoint : public Element
 {
 public:
+	explicit MassPoint(unsigned int id) : Element(id)
+	{
+	}
+
 	MassPoint() : Element(sNextStaticIdForMassPoint++) 
 	{
 		SetMass(1.0f);

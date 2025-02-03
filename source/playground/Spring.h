@@ -61,5 +61,5 @@ public:
 
 
 private:
-	float mElasticConstant = 5.0f;
+	float mElasticConstant = 10.0f;
 };

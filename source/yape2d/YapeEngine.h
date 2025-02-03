@@ -44,6 +44,8 @@ namespace yape2d
 
 		float mGravity = 0.0f;
 		float mFriction = 0.0f;
+		float mMaxTimeStep = 0.01f;
+		int mConstrainSolver_Iterations = 5;
 
 		MassPointsData mData;
 		std::vector<std::unique_ptr<Force>> mForces;

@@ -1,7 +1,7 @@
 #pragma once
 #include <olcPixelGameEngine.h>
 #include <yape2d/YapeEngine.h>
-
+#include <SimulationSetup.h>
 
 class Element;
 class MassPoint;
@@ -9,6 +9,7 @@ class TwoPointsElement;
 class UIBase;
 class UIButton;
 class UISlider;
+
 
 class Playground : public olc::PixelGameEngine
 {
@@ -57,8 +58,8 @@ private:
 	std::shared_ptr<Element> FindAnyElement(olc::vf2d pos);
 
 	void ResetSetup();
-	void InitSpringTests();
-	void InitDoublePendulum();
+	void InitBenchamarkA();
+	void InitBenchamarkB();
 
 	void OnSelectElement(std::shared_ptr<Element> element);
 	void ResetCamera();
@@ -66,17 +67,14 @@ private:
 private:
 
 	bool mIsSimulationDirty = false;
-
-	bool mWithGravity = false;
 	bool mIsSimulationRunning = false;
+
 	EditMode mEditMode = EditMode::COUNT;
 
 	std::shared_ptr<Element> mElementToAdd = nullptr;
 	std::shared_ptr<Element> mElementSelected = nullptr;
 
-	std::vector<std::shared_ptr<MassPoint>> mMassPoints;
-	std::vector<std::shared_ptr<TwoPointsElement>> mTwoPointsElements;
-
+	std::unique_ptr<SimulationSetup> mSetup;
 
 	// UI
 	bool mMovingCamera = false;
@@ -96,6 +94,7 @@ private:
 	float mScale = 100.0;
 	olc::vf2d mOffset = { 0.0f, 0.0f };
 	olc::vf2d mLastMousePosition = { 0.0f, 0.0f };
+
 	bool mIsMovingCamera = false;
 	bool mMoveMoveCamera = false;
 }; 
