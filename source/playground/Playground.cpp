@@ -6,6 +6,13 @@
 #include <UI/UISlider.h>
 #include <vector>
 
+namespace
+{
+	const olc::Pixel ColorBackground = olc::Pixel(8, 22, 91);
+	const olc::Pixel ColorGrid = olc::Pixel(53, 59, 91);
+
+}
+
 Playground::Playground()
 {
 	sAppName = "Yape 2D - Playground";
@@ -129,14 +136,17 @@ bool Playground::OnUserCreate()
 		posX += buttonWidth + 10;
 		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Example A", [this]()
 			{
-				LoadSetup("benchmarkA.xml");
+				LoadSetup("example_01.xml");
 			});
 		mUIElements.push_back(btn);
 		mUIElementsEdit.push_back(btn);
 	}
 	{
 		posX += buttonWidth + 5;
-		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Example B", [this]() {InitBenchamarkB(); });
+		auto btn = std::make_shared<UIButton>(posX, posY, buttonWidth, buttonHeight, "Example B", [this]() 
+			{
+				LoadSetup("example_02.xml");
+			});
 		mUIElements.push_back(btn);
 		mUIElementsEdit.push_back(btn);
 	}
@@ -171,7 +181,7 @@ bool Playground::OnUserCreate()
 
 bool Playground::OnUserUpdate(float fElapsedTime)
 {
-	Clear(olc::BLACK);
+	Clear(ColorBackground);
 
 	DrawElements();
 	DrawUI();

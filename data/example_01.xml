@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<Yape2dPlayground gravity="9.80000019" friction="0.099999994">
+	<MassPoint id="1003" x="-3.0" y="0.0" m="1" fix="true" />
+	<MassPoint id="1004" x="3.0" y="0.0" m="1" fix="true" />
+	<MassPoint id="1005" x="-1.0000000" y="0.0" m="1" fix="false" />
+	<MassPoint id="1006" x="1.0000000" y="0.0" m="1" fix="false" />
+	<Rod id="0" mpId1="1003" mpId2="1005" />
+	<Rod id="0" mpId1="1006" mpId2="1004" />
+	<Spring k="10" length="2.76999998" id="0" mpId1="1005" mpId2="1006" />
+</Yape2dPlayground>
