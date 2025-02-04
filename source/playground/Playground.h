@@ -1,5 +1,6 @@
 #pragma once
 #include <olcPixelGameEngine.h>
+#include <olcPGEX_Font.h>
 #include <yape2d/YapeEngine.h>
 #include <SimulationSetup.h>
 
@@ -100,4 +101,6 @@ private:
 
 	bool mIsMovingCamera = false;
 	bool mMoveMoveCamera = false;
+
+	std::shared_ptr<olc::Font> mFont;
 }; 

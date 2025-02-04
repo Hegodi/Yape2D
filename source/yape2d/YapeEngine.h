@@ -31,6 +31,8 @@ namespace yape2d
 		float GetTime() const { return mTime; }
 		int GetNumberConstrains() const { return mConstrains.size(); }
 		int GetNumberForces() const { return mForces.size(); }
+		void SetConstrainSolverIterations(int count) { mConstrainSolver_Iterations = count; }
+		void SetConstrainCorrectionWeight(float weight) { mConstrainCorrectionWeigth = weight; }
 
 	private:
 		void ResetForces();
@@ -48,6 +50,7 @@ namespace yape2d
 		float mFriction = 0.0f;
 		float mMaxTimeStep = 0.01f;
 		int mConstrainSolver_Iterations = 5;
+		float mConstrainCorrectionWeigth = 50.0f;
 
 		MassPointsData mData;
 		std::vector<std::unique_ptr<Force>> mForces;

@@ -1,5 +1,6 @@
 #pragma once
 #include <olcPixelGameEngine.h>
+#include <olcPGEX_Font.h>
 #include <functional>
 #include <UI/UIBase.h>
 
@@ -43,7 +44,14 @@ public:
 	void DrawInternal(Playground* pg) const override
 	{
 		pg->FillRect(mPos, mSize, mColor);
-		pg->DrawString(mPosText, mText, olc::BLACK);
+		if (mFont)
+		{
+			mFont->DrawStringDecal(mPosText, mText, olc::BLACK);
+		}
+		else
+		{
+			pg->DrawString(mPosText, mText, olc::BLACK);
+		}
 	}
 
 	void SetText(const char* text) { mText = text; }
@@ -62,4 +70,5 @@ private:
 	olc::vi2d mPosText;
 	olc::vi2d mSize;
 	OnClickCallback mCallback = nullptr;
+	std::shared_ptr<olc::Font> mFont = nullptr;
 };

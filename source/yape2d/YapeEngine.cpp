@@ -144,7 +144,7 @@ namespace yape2d
 		{
 			for (auto const& constrain : mConstrains)
 			{
-				constrain->Apply(mData, 50.0f);
+				constrain->Apply(mData, mConstrainCorrectionWeigth);
 			}
 		}
 	}

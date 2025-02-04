@@ -13,8 +13,9 @@ Playground::Playground()
 
 bool Playground::OnUserCreate()
 {
-
 	mSetup = std::make_unique<SimulationSetup>();
+
+	mFont = std::make_shared<olc::Font>("../../data/Badaga.png");
 
 	int posX = 5;
 	int posY = 5;
