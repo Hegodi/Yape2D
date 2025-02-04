@@ -1,6 +1,6 @@
 #pragma once
-#include <yape2d/Constrain.h>
-#include <yape2d/MassPointsData.h>
+#include <Constrain.h>
+#include <MassPointsData.h>
 
 namespace yape2d
 {

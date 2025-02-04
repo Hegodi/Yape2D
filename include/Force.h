@@ -1,6 +1,6 @@
 #pragma once
-#include <yape2d/MassPointsData.h>
-#include <yape2d/Vector2D.h>
+#include <MassPointsData.h>
+#include <Vector2D.h>
 
 namespace yape2d
 {

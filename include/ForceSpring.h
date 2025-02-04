@@ -1,5 +1,5 @@
-#include <yape2d/MassPointsData.h>
-#include <yape2d/Force.h>
+#include <MassPointsData.h>
+#include <Force.h>
 
 namespace yape2d
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <unordered_map>
-#include <yape2d/Vector2D.h>
+#include <Vector2D.h>
 
 namespace yape2d
 {

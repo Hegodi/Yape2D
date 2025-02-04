@@ -1,10 +1,10 @@
-#include <yape2d/YapeEngine.h>
+#include <YapeEngine.h>
 
 #include <assert.h>
 
-#include <yape2d/ForceSpring.h>
-#include <yape2d/ConstrainDistance.h>
-#include <yape2d/ConstrainFixedPosition.h>
+#include <ForceSpring.h>
+#include <ConstrainDistance.h>
+#include <ConstrainFixedPosition.h>
 
 namespace yape2d
 {

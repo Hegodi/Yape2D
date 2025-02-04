@@ -1,5 +1,5 @@
 #pragma once
-#include <yape2d/MassPointsData.h>
+#include <MassPointsData.h>
 
 namespace yape2d
 {

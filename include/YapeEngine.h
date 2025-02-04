@@ -3,11 +3,11 @@
 #include <unordered_map>
 #include <functional>
 #include <memory>
-#include <yape2d/Constrain.h>
+#include <Constrain.h>
 
-#include <yape2d/Vector2D.h>
-#include <yape2d/MassPointsData.h>
-#include <yape2d/Force.h>
+#include <Vector2D.h>
+#include <MassPointsData.h>
+#include <Force.h>
 
 namespace yape2d
 {
