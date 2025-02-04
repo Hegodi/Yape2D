@@ -19,3 +19,9 @@ The project just has two folders: include and source. If you want to use
 Yape 2D in your project, you juse need to add then include folder to the 
 include directories and add the files inside soruce to your project.
 
+## How to test it
+You can check this other repo [Yape2D-Playground](https://github.com/Hegodi/Yape2D-Playground)
+where I have developed a small app that allows you to test different features of the engine. 
+It can also give you an idea on how to integrat Yape2D in your game.
+
+You can test a web browser verstion of the play ground here [Hegodi](https://Hegodi.com).
